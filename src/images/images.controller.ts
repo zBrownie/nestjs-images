@@ -1,65 +1,44 @@
 import {
-  Body,
   Controller,
-  Delete,
   Get,
-  HttpException,
-  Param,
-  Patch,
   Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
   UsePipes,
   ValidationPipe,
+  HttpException,
 } from '@nestjs/common';
 import { ImagesService } from './images.service';
-import { CreateImageDto } from './dtos/createImage.dto';
+import { CreateImageDto } from './dto/create-image.dto';
+import { UpdateImageDto } from './dto/update-image.dto';
 import mongoose from 'mongoose';
-import { UpdateImageDto } from './dtos/updateImage.dto';
 
-@Controller('i')
+@Controller('images')
 export class ImagesController {
-  constructor(private imagesService: ImagesService) {}
+  constructor(private readonly imagesService: ImagesService) {}
 
-  @Post('upload')
+  @Post()
   @UsePipes(new ValidationPipe())
-  async createImage(@Body() newImage: CreateImageDto) {
-    return this.imagesService.createImage(newImage);
+  create(@Body() createImageDto: CreateImageDto) {
+    return this.imagesService.create(createImageDto);
   }
 
   @Get()
-  async getImages() {
-    return this.imagesService.getAllImages();
+  findAll() {
+    return this.imagesService.findAll();
   }
 
   @Get(':id')
-  async getById(@Param('id') id: string) {
-    const isIdValid = mongoose.Types.ObjectId.isValid(id);
-    if (!isIdValid) throw new HttpException('Image not found', 400);
-
-    const image = await this.imagesService.getImageById(id);
-
-    if (!image) throw new HttpException('Image not found', 400);
-    return image;
+  findOne(@Param('id') id: string) {
+    return this.imagesService.findOne(+id);
   }
 
   @Patch(':id')
   @UsePipes(new ValidationPipe())
-  async updateImage(
-    @Param('id') id: string,
-    @Body() updateImageDto: UpdateImageDto,
-  ) {
-    const isIdValid = mongoose.Types.ObjectId.isValid(id);
-    if (!isIdValid) throw new HttpException('Image not found', 400);
-
-    const image = await this.imagesService.getImageById(id);
-    if (!image) throw new HttpException('Image not found', 400);
-
-    const updatedImage = await this.imagesService.updateImage(
-      new mongoose.Types.ObjectId(id),
-      updateImageDto,
-    );
-
-    if (!updatedImage) throw new HttpException('Image not found', 400);
-    return updateImageDto;
+  update(@Param('id') id: string, @Body() updateImageDto: UpdateImageDto) {
+    return this.imagesService.update(+id, updateImageDto);
   }
 
   @Patch('views/:id')
@@ -68,23 +47,14 @@ export class ImagesController {
     const isIdValid = mongoose.Types.ObjectId.isValid(id);
     if (!isIdValid) throw new HttpException('Image not found', 400);
 
-    const image = await this.imagesService.getImageById(id);
+    const image = this.imagesService.findOne(+id);
     if (!image) throw new HttpException('Image not found', 400);
 
-    return this.imagesService.updateViewsImage(
-      new mongoose.Types.ObjectId(id),
-      { views: image.views + 1 },
-    );
+    return this.imagesService.update(+id, {});
   }
 
   @Delete(':id')
-  async deleteImage(@Param('id') id: string) {
-    const isIdValid = mongoose.Types.ObjectId.isValid(id);
-    if (!isIdValid) throw new HttpException('Image not found', 400);
-
-    const image = await this.imagesService.getImageById(id);
-    if (!image) throw new HttpException('Image not found', 400);
-
-    return this.imagesService.deleteImage(new mongoose.Types.ObjectId(id));
+  remove(@Param('id') id: string) {
+    return this.imagesService.remove(+id);
   }
 }
