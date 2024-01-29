@@ -1,7 +1,7 @@
 import { IsNotEmpty, IsNumber } from 'class-validator';
 
 export class UpdateViewsImageDto {
-  @IsNumber()
   @IsNotEmpty()
+  @IsNumber()
   views: number;
 }
